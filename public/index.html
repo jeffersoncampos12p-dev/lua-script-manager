@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lua Script Manager - Editor de Scripts Lua</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" data-name="vs" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/vs.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.50.0/min/vs/loader.min.js"></script>
+</head>
+<body>
+  <div id="app" class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo">Lua Manager</h1>
+        <button id="themeToggle" class="theme-toggle" title="Alternar tema">
+          <span class="icon">🌙</span>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="editor">
+          <span class="icon">✎</span>
+          <span class="label">Editor</span>
+        </button>
+        <button class="nav-item" data-section="upload">
+          <span class="icon">⬆</span>
+          <span class="label">Upload</span>
+        </button>
+        <button class="nav-item" data-section="github">
+          <span class="icon">⊞</span>
+          <span class="label">GitHub</span>
+        </button>
+        <button class="nav-item" data-section="obfuscation">
+          <span class="icon">🔐</span>
+          <span class="label">Ofuscação</span>
+        </button>
+        <button class="nav-item" data-section="verification">
+          <span class="icon">✓</span>
+          <span class="label">Verificação</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="stats">
+          <div class="stat-item">
+            <span class="stat-label">Scripts</span>
+            <span class="stat-value" id="scriptCount">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Linhas</span>
+            <span class="stat-value" id="lineCount">0</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <h2 class="section-title" id="sectionTitle">Editor de Scripts</h2>
+          <div class="header-actions">
+            <button id="saveBtn" class="btn btn-primary" title="Salvar script (Ctrl+S)">
+              <span class="icon">💾</span>
+              <span>Salvar</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Sections -->
+      <div class="content">
+        <!-- Editor Section -->
+        <section id="editorSection" class="section active">
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <div class="file-info">
+                <select id="fileSelect" class="file-select">
+                  <option value="">Novo arquivo...</option>
+                </select>
+                <span class="file-size" id="fileSize">0 B</span>
+              </div>
+              <div class="editor-actions">
+                <button id="newFileBtn" class="btn btn-secondary" title="Novo arquivo">
+                  <span class="icon">+</span>
+                  Novo
+                </button>
+                <button id="deleteFileBtn" class="btn btn-secondary" title="Deletar arquivo">
+                  <span class="icon">🗑</span>
+                  Deletar
+                </button>
+              </div>
+            </div>
+            <div id="editor" class="editor"></div>
+            <div class="editor-status">
+              <span id="cursorPos">Ln 1, Col 1</span>
+              <span id="languageMode">Lua</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section id="uploadSection" class="section">
+          <div class="card">
+            <h3>Upload de Scripts Lua</h3>
+            <div class="upload-area" id="uploadArea">
+              <div class="upload-icon">📁</div>
+              <p class="upload-text">Arraste arquivos aqui ou clique para selecionar</p>
+              <input type="file" id="fileInput" accept=".lua" multiple hidden>
+            </div>
+            <div class="upload-list" id="uploadList"></div>
+          </div>
+        </section>
+
+        <!-- GitHub Section -->
+        <section id="githubSection" class="section">
+          <div class="card">
+            <h3>Integração GitHub</h3>
+            <div class="form-group">
+              <label for="githubToken">Token GitHub</label>
+              <input type="password" id="githubToken" placeholder="Insira seu token GitHub" class="input">
+            </div>
+            <div class="form-group">
+              <label for="githubRepo">Repositório (owner/repo)</label>
+              <input type="text" id="githubRepo" placeholder="ex: usuario/repositorio" class="input">
+            </div>
+            <div class="form-group">
+              <label for="githubBranch">Branch</label>
+              <input type="text" id="githubBranch" placeholder="main" class="input" value="main">
+            </div>
+            <div class="form-group">
+              <label for="commitMessage">Mensagem do Commit</label>
+              <input type="text" id="commitMessage" placeholder="Atualizando script Lua" class="input">
+            </div>
+            <button id="pushBtn" class="btn btn-primary" style="width: 100%">
+              <span class="icon">⬆</span>
+              Fazer Push
+            </button>
+            <div id="githubStatus" class="status-message"></div>
+          </div>
+        </section>
+
+        <!-- Obfuscation Section -->
+        <section id="obfuscationSection" class="section">
+          <div class="card">
+            <h3>Ofuscação de Código</h3>
+            <p class="section-description">Comprima e ofusque seu código Lua para melhor performance e proteção</p>
+            <button id="obfuscateBtn" class="btn btn-primary" style="width: 100%">
+              <span class="icon">🔐</span>
+              Ofuscar Código
+            </button>
+            <div id="obfuscationResult" class="result-box"></div>
+          </div>
+          <div class="card">
+            <h3>Análise de Código</h3>
+            <button id="analyzeBtn" class="btn btn-primary" style="width: 100%">
+              <span class="icon">📊</span>
+              Analisar
+            </button>
+            <div id="analysisResult" class="result-box"></div>
+          </div>
+        </section>
+
+        <!-- Verification Section -->
+        <section id="verificationSection" class="section">
+          <div class="card">
+            <h3>Verificação de Chaves</h3>
+            <div class="form-group">
+              <label>Ação</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="verificationAction" value="generate" checked>
+                  Gerar Chave
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="verificationAction" value="verify">
+                  Verificar Chave
+                </label>
+              </div>
+            </div>
+            <button id="generateKeyBtn" class="btn btn-primary" style="width: 100%">
+              <span class="icon">🔑</span>
+              Gerar Chave SHA256
+            </button>
+            <div id="generatedKey" class="result-box"></div>
+          </div>
+          <div class="card">
+            <h3>Verificação de Integridade</h3>
+            <button id="integrityBtn" class="btn btn-primary" style="width: 100%">
+              <span class="icon">✓</span>
+              Verificar Integridade
+            </button>
+            <div id="integrityResult" class="result-box"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
